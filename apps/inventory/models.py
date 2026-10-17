@@ -63,3 +63,60 @@ class InventoryLedger(models.Model):
 
     def __str__(self):
         return f"{self.inventory_item.sku}: {self.quantity_change:+d}"
+
+
+class ReservationStatus(models.TextChoices):
+    ACTIVE = "ACTIVE", "Active"
+    COMMITTED = "COMMITTED", "Committed"
+    RELEASED = "RELEASED", "Released"
+    EXPIRED = "EXPIRED", "Expired"
+
+
+class InventoryReservation(TimeStampedModel):
+    order = models.OneToOneField(
+        "orders.order", on_delete=models.PROTECT, related_name="inventory_reservation"
+    )
+    status = models.CharField(
+        max_length=15, choices=ReservationStatus.choices, default=ReservationStatus.ACTIVE
+    )
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(status__in=ReservationStatus.values),
+                name="inventory_reservation_status_valid",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["expires_at"],
+                condition=models.Q(status=ReservationStatus.ACTIVE),
+                name="inv_res_active_expires_idx",
+            )
+        ]
+
+
+class ReservationItem(models.Model):
+    reservation = models.ForeignKey(
+        "InventoryReservation", on_delete=models.CASCADE, related_name="items"
+    )
+    inventory_item = models.ForeignKey(
+        "InventoryItem", on_delete=models.PROTECT, related_name="reservation_items"
+    )
+    quantity = models.IntegerField()
+
+    class Meta:
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(quantity__gt=0),
+                name="inventory_reservation_item_quantity_positive",
+            ),
+            models.UniqueConstraint(
+                fields=["reservation", "inventory_item"],
+                name="inventory_reservation_item_unique_sku",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.inventory_item.sku}: {self.quantity}"
