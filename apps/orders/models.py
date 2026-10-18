@@ -66,9 +66,9 @@ class OrderItem(models.Model):
 
 class OrderStatusHistory(models.Model):
     order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="status_history")
-    from_status = models.CharField(
+    from_status = models.CharField(  # noqa: DJ001  NULL = creation row; "" is blocked by the check constraint
         max_length=20, choices=OrderStatus.choices, null=True, blank=True
-    )  # noqa: DJ001  NULL = creation row; "" is blocked by the check constraint
+    )
     to_status = models.CharField(max_length=20, choices=OrderStatus.choices)
     created_at = models.DateTimeField(auto_now_add=True)
 
