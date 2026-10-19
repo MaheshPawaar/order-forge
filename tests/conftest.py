@@ -1,7 +1,10 @@
+import itertools
 from decimal import Decimal
 
 import pytest
 
+from apps.catalog.models import SKU, Product
+from apps.inventory.models import InventoryItem
 from apps.orders.models import Order, OrderStatus
 
 
@@ -14,5 +17,20 @@ def user(django_user_model):
 def make_order(user):
     def _make(status=OrderStatus.CREATED):
         return Order.objects.create(user=user, total=Decimal("0.00"), status=status)
+
+    return _make
+
+
+@pytest.fixture
+def make_stock():
+    counter = itertools.count(1)
+
+    def _make(on_hand=10, price="100.00", is_active=True):
+        n = next(counter)
+        product = Product.objects.create(name=f"Product {n}")
+        sku = SKU.objects.create(
+            product=product, code=f"SKU={n}", price=Decimal(price), is_active=is_active
+        )
+        return InventoryItem.objects.create(sku=sku, on_hand=on_hand)
 
     return _make
