@@ -2,6 +2,7 @@ import itertools
 from decimal import Decimal
 
 import pytest
+from rest_framework.test import APIClient
 
 from apps.catalog.models import SKU, Product
 from apps.inventory.models import InventoryItem
@@ -34,3 +35,8 @@ def make_stock():
         return InventoryItem.objects.create(sku=sku, on_hand=on_hand)
 
     return _make
+
+
+@pytest.fixture
+def api_client():
+    return APIClient()
