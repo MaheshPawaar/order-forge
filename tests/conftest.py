@@ -40,3 +40,22 @@ def make_stock():
 @pytest.fixture
 def api_client():
     return APIClient()
+
+
+@pytest.fixture
+def staff_user(django_user_model):
+    return django_user_model.objects.create_user("staff", password="pass", is_staff=True)
+
+
+@pytest.fixture
+def customer_client(user):
+    client = APIClient()
+    client.force_authenticate(user=user)
+    return client
+
+
+@pytest.fixture
+def staff_client(staff_user):
+    client = APIClient()
+    client.force_authenticate(user=staff_user)
+    return client
