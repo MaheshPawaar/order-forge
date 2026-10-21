@@ -30,7 +30,7 @@ def make_stock():
         n = next(counter)
         product = Product.objects.create(name=f"Product {n}")
         sku = SKU.objects.create(
-            product=product, code=f"SKU={n}", price=Decimal(price), is_active=is_active
+            product=product, code=f"SKU-{n}", price=Decimal(price), is_active=is_active
         )
         return InventoryItem.objects.create(sku=sku, on_hand=on_hand)
 
